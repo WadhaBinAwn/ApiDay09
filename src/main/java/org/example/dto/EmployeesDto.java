@@ -73,8 +73,10 @@ public class EmployeesDto {
                 ", salary=" + salary +
                 ", manager_id=" + manager_id +
                 ", department_id=" + department_id +
+                ", jobs=" + jobs +
                 '}';
     }
+
     @XmlElementWrapper
     @XmlElement(name = "link")
     public ArrayList<LinkDto> getLinks() {
@@ -95,6 +97,8 @@ public class EmployeesDto {
     public void setJobs(JobsDto jobs) {
         this.jobs = jobs;
     }
+
+
     public int getEmployee_id() {
         return employee_id;
     }

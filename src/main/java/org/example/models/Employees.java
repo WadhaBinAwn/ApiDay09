@@ -33,7 +33,7 @@ private Jobs jobs;
         department_id = rs.getInt("department_id");
 
         ResultSetMetaData mt = rs.getMetaData();
-        if(mt.getColumnCount() > 3) {
+        if(mt.getColumnCount() > 10) {
             jobs = new Jobs(rs);
 
     }}
@@ -135,6 +135,7 @@ private Jobs jobs;
         this.department_id = department_id;
     }
 
+
     @Override
     public String toString() {
         return "Employees{" +
@@ -148,9 +149,9 @@ private Jobs jobs;
                 ", salary=" + salary +
                 ", manager_id=" + manager_id +
                 ", department_id=" + department_id +
+                ", jobs=" + jobs +
                 '}';
     }
-
 
     public void addLink(String string, String self) {
     }

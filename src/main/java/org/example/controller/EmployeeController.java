@@ -21,204 +21,84 @@ import java.util.ArrayList;
 @Path("/employees")
 public class EmployeeController {
 
+    @Context
+    UriInfo uriInfo;
+
+    @Context
+    HttpHeaders headers;
+
     EmployeeDAO dao = new EmployeeDAO();
-     JobDAO jao = new JobDAO();
 
-
-    @Context
-    private UriInfo uriInfo;
-
-    @Context
-    private HttpHeaders headers;
-
-
-
-
-//    @GET
-//    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-//    public Response getAllEmployees(@BeanParam EmployeeFilterDto filterDto) throws SQLException, ClassNotFoundException {
-//
-//        GenericEntity<ArrayList<Employees>>  employee = new GenericEntity<ArrayList<Employees>> (dao.selectAllEmployees(filterDto)){};
-//       try {
-//           if (headers.getAcceptableMediaTypes().contains(MediaType.valueOf(MediaType.APPLICATION_XML))) {
-//               return Response
-//                       .ok(employee)
-//                       .type(MediaType.APPLICATION_XML)
-//                       .build();
-//           }
-//
-//        return Response
-//                .ok(employee, MediaType.APPLICATION_JSON)
-//                .build();
-//    }
-//    catch (Exception e)
-//    {
-//        throw new RuntimeException(e);
-//    }
-//    }
-
-@GET
-@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-public Response getAllEmployees(@BeanParam EmployeeFilterDto filterDto) {
-    try {
-        // Check if hire year is specified
-        if (filterDto.getHireYear() != null) {
-            ArrayList<Employees> employeesByHireYear = dao.selectEmployeesByHireYear(filterDto.getHireYear());
-            GenericEntity<ArrayList<Employees>> employee = new GenericEntity<ArrayList<Employees>>(employeesByHireYear) {};
-            return Response.ok(employee).build();
-        }
-        // Check if job ID is specified
-        else if (filterDto.getJobId() != null) {
-            ArrayList<Employees> employeesByJobId = dao.selectEmployeesByJobId(filterDto.getJobId());
-            GenericEntity<ArrayList<Employees>> employee = new GenericEntity<ArrayList<Employees>>(employeesByJobId) {};
-            return Response.ok(employee).build();
-        } else {
-            // Retrieve all employees
-            ArrayList<Employees> employees = dao.selectAllEmployees(filterDto);
-            GenericEntity<ArrayList<Employees>> employee = new GenericEntity<ArrayList<Employees>>(employees) {};
-            // Check acceptable media types
-            if (headers.getAcceptableMediaTypes().contains(MediaType.valueOf(MediaType.APPLICATION_XML))) {
-                return Response.ok(employee).type(MediaType.APPLICATION_XML).build();
+    @GET
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "text/csv"})
+    public Response getAllEmployees(@BeanParam EmployeeFilterDto filterDto) {
+        try {
+            GenericEntity<ArrayList<Employees>> employsList = new GenericEntity<ArrayList<Employees>>(dao.selectAllEmployees(filterDto)) {};
+            if (headers.getAcceptableMediaTypes().contains(MediaType.APPLICATION_XML_TYPE)) {
+                return Response.ok(employsList).type(MediaType.APPLICATION_XML).build();
+            } else if (headers.getAcceptableMediaTypes().contains(MediaType.valueOf("text/csv"))) {
+                return Response.ok(employsList).type("text/csv").build();
             }
-            return Response.ok(employee, MediaType.APPLICATION_JSON).build();
+            return Response.ok(employsList, MediaType.APPLICATION_JSON).build();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-    } catch (SQLException | ClassNotFoundException e) {
-        throw new RuntimeException(e);
     }
-}
-
-
-
-
-
-
-
-//    @GET
-//    @Path("{employees_id}")
-//    public Response getEmployee(@PathParam("employees_id") int employees_id) {
-//        try {
-//            Employees employees = dao.selectEmployees(employees_id);
-//
-//            if (employees == null) {
-//                throw new DataNotFoundException("employee with ID " + employees_id + " not found");
-//            }
-////            EmployeeFilterDto dto = new EmployeeFilterDto();
-////            dto.setJobId(employees.getJob_id());
-////            dto.setMaxSalary(employees.getMax_salary());
-////            dto.setMinSalary(employees.getMin_salary());
-////            dto.setJob_title(employees.getJob_title());
-////            addLink(dto);
-//
-//            return Response.ok(employees).build();
-//        } catch (ClassNotFoundException e) {
-//            throw new RuntimeException(e);
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-
 
     @GET
     @Path("/{employee_id}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON,"text/csv"})
-    public Response getEmployee(@PathParam("employee_id") int employee_id, @Context UriInfo uriInfo) {
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, "text/csv"})
+    public Response getEmployee(@PathParam("employee_id") int employeeId) {
         try {
-            Employees employees = dao.selectEmployees(employee_id);
+            Employees employees = dao.selectEmployee(employeeId);
             if (employees == null) {
-                throw new DataNotFoundException("Employee with ID " + employee_id + " not found");
+                throw new DataNotFoundException("Employee with ID " + employeeId + " not found");
             }
-
-            // Create self link
-//            Link selfLink = Link.fromUri(uriInfo.getAbsolutePath())
-//                    .rel("self")
-//                    .build();
-
-
-            Jobs j = JobDAO.selectJob(employees.getJob_id());
-            EmployeesDto dto = EmployeesMapper.INSTANCE.toEmployeesDto(employees,j);
-            // Add links to the response
+            EmployeesDto dto = EmployeesMapper.INSTANCE.toEmployeesDto(employees);
             addLink(dto);
-
             return Response.ok(dto).build();
         } catch (ClassNotFoundException | SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void addLink(EmployeesDto dto) {
-        URI selfUri = uriInfo.getAbsolutePath();
-        URI jobUri = uriInfo.getAbsolutePathBuilder()
-                            .path(JobController.class)
-                .build();
-        dto.addLink(jobUri.toString(),"Jobs");
-        dto.addLink(selfUri.toString(), "self");
-
-        // Add other links as needed
-    }
     @DELETE
-    @Path("{employees_id}")
-    public void deleteEmployees(@PathParam("employees_id") int employees_id) {
+    @Path("/{employee_id}")
+    public Response deleteEmployee(@PathParam("employee_id") int employeeId) {
         try {
-            dao.deleteEmployees(employees_id);
+            dao.deleteEmployee(employeeId);
+            return Response.noContent().build();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @POST
-    public Response insertEmployees(Employees employees) {
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response insertEmployee(Employees employ) {
         try {
-            dao.insertEmployees(employees);
-            NewCookie cookie = (new NewCookie.Builder("username")).value("OOOOO").build();
-            URI uri = uriInfo.getAbsolutePathBuilder().path(employees.getJob_id()+"").build();
-            return Response
-                    .created(uri)
-                    .cookie(cookie)
-                    .header("Created by", "Wadha")
-                    .build();
+            dao.insertEmployee(employ);
+            URI uri = uriInfo.getAbsolutePathBuilder().path(Integer.toString(employ.getEmployee_id())).build();
+            return Response.created(uri).build();
         } catch (Exception e) {
             throw new RuntimeException(e);
-    }}
+        }
+    }
 
     @PUT
-    @Path("{employees_id}")
-    public void updateEmployees(@PathParam("employees_id") int employees_id, Employees employees) {
-
-
-
+    @Path("/{employee_id}")
+    public Response updateEmployee(@PathParam("employee_id") int employeeId, Employees employ) {
         try {
-            employees.setEmployee_id(employees_id);
-            dao.updateEmployees(employees);
+            employ.setEmployee_id(employeeId);
+            dao.updateEmployee(employ);
+            return Response.ok().build();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-//HW
-    @GET
-    @Path("/hireYear/{year}")
-    public Response getEmployeesByHireYear(@PathParam("year") int year) {
-        try {
-            ArrayList<Employees> employees = dao.selectEmployeesByHireYear(year);
-            return Response.ok(employees).build();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    private void addLink(EmployeesDto dto) {
+        URI selfUri = uriInfo.getAbsolutePath();
+        dto.addLink(selfUri.toString(), "self");
     }
-
-    //HW
-    @GET
-    @Path("/jobId/{id}")
-    public Response getEmployeesByJobId(@PathParam("id") int jobId) {
-        try {
-            ArrayList<Employees> employees = dao.selectEmployeesByJobId(jobId);
-            return Response.ok(employees).build();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-
-
 }
