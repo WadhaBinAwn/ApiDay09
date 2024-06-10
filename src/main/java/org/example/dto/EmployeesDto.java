@@ -44,7 +44,7 @@ public class EmployeesDto {
     }
 
 
-    public EmployeesDto(ResultSet rs) throws SQLException {
+    public EmployeesDto(ResultSet rs) throws SQLException{
         employee_id = rs.getInt("employee_id");
         first_name =rs.getString("first_name");
         last_name = rs.getString("last_name");
@@ -54,10 +54,7 @@ public class EmployeesDto {
         job_id = rs.getInt("job_id");
         salary = rs.getDouble("salary");
         manager_id = rs.getInt("manager_id");
-        department_id =rs.getInt("department_id"
-
-
-        );
+        department_id =rs.getInt("department_id");
     }
 
     @Override
@@ -73,10 +70,9 @@ public class EmployeesDto {
                 ", salary=" + salary +
                 ", manager_id=" + manager_id +
                 ", department_id=" + department_id +
-                ", jobs=" + jobs +
+                ", job=" + jobs +
                 '}';
     }
-
     @XmlElementWrapper
     @XmlElement(name = "link")
     public ArrayList<LinkDto> getLinks() {
@@ -97,8 +93,6 @@ public class EmployeesDto {
     public void setJobs(JobsDto jobs) {
         this.jobs = jobs;
     }
-
-
     public int getEmployee_id() {
         return employee_id;
     }
@@ -177,5 +171,4 @@ public class EmployeesDto {
 
     public void setDepartment_id(int department_id) {
         this.department_id = department_id;
-    }
-}
+    }}

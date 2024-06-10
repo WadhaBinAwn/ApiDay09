@@ -16,7 +16,7 @@ public class Employees {
     private double salary;
     private int manager_id;
     private int department_id;
-private Jobs jobs;
+     private Jobs jobs;
 
 
 
@@ -135,6 +135,13 @@ private Jobs jobs;
         this.department_id = department_id;
     }
 
+    public Jobs getJobs() {
+        return jobs;
+    }
+
+    public void setJobs(Jobs jobs) {
+        this.jobs = jobs;
+    }
 
     @Override
     public String toString() {

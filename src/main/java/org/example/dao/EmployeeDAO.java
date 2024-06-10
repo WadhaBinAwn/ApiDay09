@@ -83,27 +83,30 @@ public class EmployeeDAO {
     }
     public ArrayList<Employees> selectAllEmployees(EmployeeFilterDto filterDto) throws SQLException, ClassNotFoundException {
         Class.forName("org.sqlite.JDBC");
-        try (Connection conn = DriverManager.getConnection(URL)) {
-            PreparedStatement st;
+        Connection conn = DriverManager.getConnection(URL);
+        PreparedStatement st ;
 
-            if (filterDto.getHire_date() != null) {
-                st = conn.prepareStatement(SELECT_BY_HIRE_DATE);
-                st.setString(1, filterDto.getHire_date());
-            } else if (filterDto.getJobId() != null) {
-                st = conn.prepareStatement(SELECT_BY_JOB_ID);
-                st.setInt(1, filterDto.getJobId());
-            } else {
-                st = conn.prepareStatement(SELECT_ALL_EMPLOYEES);
-            }
+        if (filterDto.getHire_date() != null) {
 
-            ResultSet rs = st.executeQuery();
-            ArrayList<Employees> employs = new ArrayList<>();
-            while (rs.next()) {
-                employs.add(new Employees(rs));
-            }
+            st = conn.prepareStatement(SELECT_BY_HIRE_DATE);
+            st.setString(1,filterDto.getHire_date());
 
-            return employs;
+        } else if (filterDto.getJobId() != null) {
+            st = conn.prepareStatement(SELECT_BY_JOB_ID);
+            st.setInt(1,filterDto.getJobId());
+
+        }else {
+            st = conn.prepareStatement(SELECT_ALL_EMPLOYEES);
+
         }
+        ResultSet rs = st.executeQuery();
+        ArrayList<Employees> employs = new ArrayList<>();
+        while (rs.next()) {
+            employs.add(new Employees(rs));
+        }
+
+        return employs;
+    }
     }
 
 //    public ArrayList<Employees> selectEmployeesByHireYear(int hireYear) throws SQLException, ClassNotFoundException {
@@ -131,4 +134,4 @@ public class EmployeeDAO {
 //            return employees;
 //        }
 //    }
-}
+

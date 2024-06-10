@@ -17,7 +17,7 @@ public class Jobs {
 //    private double min_salary;
 //    @FormParam("max_salary")
 //    private double max_salary;
-private int job_id;
+    private int job_id;
     private String job_title;
     private double min_salary;
     private double max_salary;

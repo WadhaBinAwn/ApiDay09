@@ -48,12 +48,14 @@ public class EmployeeController {
     @GET
     @Path("/{employee_id}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, "text/csv"})
-    public Response getEmployee(@PathParam("employee_id") int employeeId) {
+    public Response getEmployee(@PathParam("employee_id") int employeeId)throws SQLException {
         try {
             Employees employees = dao.selectEmployee(employeeId);
             if (employees == null) {
                 throw new DataNotFoundException("Employee with ID " + employeeId + " not found");
             }
+            Jobs j = JobDAO.selectJob(employees.getJob_id());
+
             EmployeesDto dto = EmployeesMapper.INSTANCE.toEmployeesDto(employees);
             addLink(dto);
             return Response.ok(dto).build();
